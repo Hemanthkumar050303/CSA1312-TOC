@@ -1,0 +1,99 @@
+#include <stdio.h>
+#include <string.h>
+
+int trans_table[10][5][3];     // NFA transition table
+char symbol[5];                // Input symbols, symbol[0] = 'e'
+int e_closure[10][10];         // ε-closure for each state
+int ptr, state;
+
+void find_e_closure(int x);
+
+int is_in_closure(int s, int st) {
+    for (int i = 0; i < 10; i++) {
+        if (e_closure[s][i] == st)
+            return 1;
+    }
+    return 0;
+}
+
+int main() {
+    int i, j, k, n, num_states, num_symbols;
+
+    // Initialize transition table with -1
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 5; j++)
+            for (k = 0; k < 3; k++)
+                trans_table[i][j][k] = -1;
+
+    printf("How many states in the NFA with ε-moves: ");
+    scanf("%d", &num_states);
+
+    printf("How many symbols in the input alphabet including ε: ");
+    scanf("%d", &num_symbols);
+
+    printf("Enter the symbols without space (give 'e' first): ");
+    scanf("%s", symbol);
+
+    // Input the transition table
+    for (i = 0; i < num_states; i++) {
+        for (j = 0; j < num_symbols; j++) {
+            printf("How many transitions from state %d for the input '%c': ", i, symbol[j]);
+            scanf("%d", &n);
+            for (k = 0; k < n; k++) {
+                printf("Enter transition %d from state %d for input '%c': ", k + 1, i, symbol[j]);
+                scanf("%d", &trans_table[i][j][k]);
+            }
+        }
+    }
+
+    // Initialize ε-closure
+    for (i = 0; i < 10; i++)
+        for (j = 0; j < 10; j++)
+            e_closure[i][j] = -1;
+
+    // Every state is in its own ε-closure
+    for (i = 0; i < num_states; i++)
+        e_closure[i][0] = i;
+
+    // Compute ε-closure for each state
+    for (i = 0; i < num_states; i++) {
+        if (trans_table[i][0][0] != -1) {
+            state = i;
+            ptr = 1;
+            find_e_closure(i);
+        }
+    }
+
+    // Print ε-closures
+    printf("\nEpsilon Closures:\n");
+    for (i = 0; i < num_states; i++) {
+        printf("ε-closure(%d) = {", i);
+        for (j = 0; j < num_states && e_closure[i][j] != -1; j++) {
+            printf("%d", e_closure[i][j]);
+            if (e_closure[i][j + 1] != -1)
+                printf(", ");
+        }
+        printf("}\n");
+    }
+
+    return 0;
+}
+
+void find_e_closure(int x) {
+    int i = 0;
+    int y[10];
+
+    while (trans_table[x][0][i] != -1) {
+        y[i] = trans_table[x][0][i];
+        i++;
+    }
+
+    int num_trans = i;
+
+    for (int j = 0; j < num_trans; j++) {
+        if (!is_in_closure(state, y[j])) {
+            e_closure[state][ptr++] = y[j];
+            find_e_closure(y[j]);
+        }
+    }
+}
