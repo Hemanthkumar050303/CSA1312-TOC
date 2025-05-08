@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <string.h>
+
+char stack[20];
+int top = -1; // stack is initially empty
+
+void push() {
+    top++;
+    stack[top] = '0'; // push '0' to represent matching a '0'
+    stack[top + 1] = '\0';
+}
+
+int pop() {
+    if (top < 0 || stack[top] != '0') {
+        return 0; // underflow or mismatch
+    } else {
+        stack[top] = '\0';
+        top--;
+        return 1;
+    }
+}
+
+int main() {
+    char input[20];
+    int i;
+    printf("Simulation of Pushdown Automata for 0n1n\n");
+    printf("Enter a string: ");
+    scanf("%s", input);
+
+    int len = strlen(input);
+    top = -1;
+    printf("Stack\tInput\n");
+
+    // Phase 1: Push for every '0'
+    for (i = 0; i < len && input[i] == '0'; i++) {
+        push();
+        printf("%s\t%s\n", stack, &input[i + 1]);
+    }
+
+    // Phase 2: Pop for every '1'
+    for (; i < len && input[i] == '1'; i++) {
+        if (!pop()) {
+            printf("%s\t%s\n", stack, &input[i + 1]);
+            printf("String NOT accepted (too many 1s)\n");
+            return 0;
+        }
+        printf("%s\t%s\n", stack, &input[i + 1]);
+    }
+
+    // Final validation
+    if (i == len && top == -1) {
+        printf("String accepted\n");
+    } else if (top != -1) {
+        printf("String NOT accepted (too many 0s)\n");
+    } else {
+        printf("String NOT accepted (invalid format or characters)\n");
+    }
+
+    return 0;
+}
